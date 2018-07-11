@@ -6,19 +6,19 @@
  the rectangle. The dispatch is given one object which contains the mouseX/Y location.
  It also has 'pointXValue', which is the conversion of mouseX to the x-axis scale.
  */
-nv.interactiveGuideline = function() {
+nv.interactiveGuideline = function () {
     "use strict";
 
     var margin = { left: 0, top: 0 } //Pass the chart's top and left magins. Used to calculate the mouseX/Y.
-        ,   width = null
-        ,   height = null
-        ,   xScale = d3.scale.linear()
-        ,   dispatch = d3.dispatch('elementMousemove', 'elementMouseout', 'elementClick', 'elementDblclick', 'elementMouseDown', 'elementMouseUp')
-        ,   showGuideLine = true
-        ,   svgContainer = null // Must pass the chart's svg, we'll use its mousemove event.
-        ,   tooltip = nv.models.tooltip()
-        ,   isMSIE =  window.ActiveXObject// Checkt if IE by looking for activeX. (excludes IE11)
-    ;
+        , width = null
+        , height = null
+        , xScale = d3.scale.linear()
+        , dispatch = d3.dispatch('elementMousemove', 'elementMouseout', 'elementClick', 'elementDblclick', 'elementMouseDown', 'elementMouseUp')
+        , showGuideLine = true
+        , svgContainer = null // Must pass the chart's svg, we'll use its mousemove event.
+        , tooltip = nv.models.tooltip()
+        , isMSIE = window.ActiveXObject// Checkt if IE by looking for activeX. (excludes IE11)
+        ;
 
     tooltip
         .duration(0)
@@ -26,14 +26,15 @@ nv.interactiveGuideline = function() {
         .hidden(false);
 
     function layer(selection) {
-        selection.each(function(data) {
+        selection.each(function (data) {
             var container = d3.select(this);
             var availableWidth = (width || 960), availableHeight = (height || 400);
+            var rectWidth = (availableWidth / data[0]["values"].length) * 2;
             var wrap = container.selectAll("g.nv-wrap.nv-interactiveLineLayer")
                 .data([data]);
             var wrapEnter = wrap.enter()
                 .append("g").attr("class", " nv-wrap nv-interactiveLineLayer");
-            wrapEnter.append("g").attr("class","nv-interactiveGuideLine");
+            wrapEnter.append("g").attr("class", "nv-interactiveGuideLine");
 
             if (!svgContainer) {
                 return;
@@ -65,7 +66,7 @@ nv.interactiveGuideline = function() {
                      position under this scenario. Removing the line below *will* cause
                      the interactive layer to not work right on IE.
                      */
-                    if(d3.event.target.tagName !== "svg") {
+                    if (d3.event.target.tagName !== "svg") {
                         subtractMargin = false;
                     }
 
@@ -75,7 +76,7 @@ nv.interactiveGuideline = function() {
 
                 }
 
-                if(subtractMargin) {
+                if (subtractMargin) {
                     mouseX -= margin.left;
                     mouseY -= margin.top;
                 }
@@ -88,7 +89,7 @@ nv.interactiveGuideline = function() {
                     || mouseX > availableWidth || mouseY > availableHeight
                     || (d3.event.relatedTarget && d3.event.relatedTarget.ownerSVGElement === undefined)
                     || mouseOutAnyReason
-                    ) {
+                ) {
 
                     if (isMSIE) {
                         if (d3.event.relatedTarget
@@ -161,50 +162,50 @@ nv.interactiveGuideline = function() {
 
                 // if user presses mouse down the layer, fire elementMouseDown
                 if (d3.event.type === 'mousedown') {
-                	dispatch.elementMouseDown({
-                		mouseX: mouseX,
-                		mouseY: mouseY,
-                		pointXValue: pointXValue
-                	});
+                    dispatch.elementMouseDown({
+                        mouseX: mouseX,
+                        mouseY: mouseY,
+                        pointXValue: pointXValue
+                    });
                 }
 
                 // if user presses mouse down the layer, fire elementMouseUp
                 if (d3.event.type === 'mouseup') {
-                	dispatch.elementMouseUp({
-                		mouseX: mouseX,
-                		mouseY: mouseY,
-                		pointXValue: pointXValue
-                	});
+                    dispatch.elementMouseUp({
+                        mouseX: mouseX,
+                        mouseY: mouseY,
+                        pointXValue: pointXValue
+                    });
                 }
             }
 
             svgContainer
-                .on("touchmove",mouseHandler)
-                .on("mousemove",mouseHandler, true)
-                .on("mouseout" ,mouseHandler,true)
-                .on("mousedown" ,mouseHandler,true)
-                .on("mouseup" ,mouseHandler,true)
-                .on("dblclick" ,mouseHandler)
+                .on("touchmove", mouseHandler)
+                .on("mousemove", mouseHandler, true)
+                .on("mouseout", mouseHandler, true)
+                .on("mousedown", mouseHandler, true)
+                .on("mouseup", mouseHandler, true)
+                .on("dblclick", mouseHandler)
                 .on("click", mouseHandler)
-            ;
+                ;
 
             layer.guideLine = null;
             //Draws a vertical guideline at the given X postion.
-            layer.renderGuideLine = function(x) {
+            layer.renderGuideLine = function (x) {
                 if (!showGuideLine) return;
                 if (layer.guideLine && layer.guideLine.attr("x1") === x) return;
-                nv.dom.write(function() {
-                    var line = wrap.select(".nv-interactiveGuideLine")
-                        .selectAll("line")
+                nv.dom.write(function () {
+                    var rect = wrap.select(".nv-interactiveGuideLine")
+                        .selectAll("rect")
                         .data((x != null) ? [nv.utils.NaNtoZero(x)] : [], String);
-                    line.enter()
-                        .append("line")
+                    rect.enter()
+                        .append("rect")
                         .attr("class", "nv-guideline")
-                        .attr("x1", function(d) { return d;})
-                        .attr("x2", function(d) { return d;})
-                        .attr("y1", availableHeight)
-                        .attr("y2",0);
-                    line.exit().remove();
+                        .attr("x", function (d) { return d - (rectWidth / 2); })
+                        .attr("width", rectWidth)
+                        .attr("height", availableHeight)
+                        .attr("y", 0)
+                    rect.exit().remove();
                 });
             }
         });
@@ -213,38 +214,38 @@ nv.interactiveGuideline = function() {
     layer.dispatch = dispatch;
     layer.tooltip = tooltip;
 
-    layer.margin = function(_) {
+    layer.margin = function (_) {
         if (!arguments.length) return margin;
-        margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
-        margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+        margin.top = typeof _.top != 'undefined' ? _.top : margin.top;
+        margin.left = typeof _.left != 'undefined' ? _.left : margin.left;
         return layer;
     };
 
-    layer.width = function(_) {
+    layer.width = function (_) {
         if (!arguments.length) return width;
         width = _;
         return layer;
     };
 
-    layer.height = function(_) {
+    layer.height = function (_) {
         if (!arguments.length) return height;
         height = _;
         return layer;
     };
 
-    layer.xScale = function(_) {
+    layer.xScale = function (_) {
         if (!arguments.length) return xScale;
         xScale = _;
         return layer;
     };
 
-    layer.showGuideLine = function(_) {
+    layer.showGuideLine = function (_) {
         if (!arguments.length) return showGuideLine;
         showGuideLine = _;
         return layer;
     };
 
-    layer.svgContainer = function(_) {
+    layer.svgContainer = function (_) {
         if (!arguments.length) return svgContainer;
         svgContainer = _;
         return layer;
@@ -268,18 +269,18 @@ nv.interactiveGuideline = function() {
  */
 nv.interactiveBisect = function (values, searchVal, xAccessor) {
     "use strict";
-    if (! (values instanceof Array)) {
+    if (!(values instanceof Array)) {
         return null;
     }
     var _xAccessor;
     if (typeof xAccessor !== 'function') {
-        _xAccessor = function(d) {
+        _xAccessor = function (d) {
             return d.x;
         }
     } else {
         _xAccessor = xAccessor;
     }
-    var _cmp = function(d, v) {
+    var _cmp = function (d, v) {
         // Accessors are no longer passed the index of the element along with
         // the element itself when invoked by d3.bisector.
         //
@@ -293,7 +294,7 @@ nv.interactiveBisect = function (values, searchVal, xAccessor) {
     };
 
     var bisect = d3.bisector(_cmp).left;
-    var index = d3.max([0, bisect(values,searchVal) - 1]);
+    var index = d3.max([0, bisect(values, searchVal) - 1]);
     var currentValue = _xAccessor(values[index]);
 
     if (typeof currentValue === 'undefined') {
@@ -304,7 +305,7 @@ nv.interactiveBisect = function (values, searchVal, xAccessor) {
         return index; //found exact match
     }
 
-    var nextIndex = d3.min([index+1, values.length - 1]);
+    var nextIndex = d3.min([index + 1, values.length - 1]);
     var nextValue = _xAccessor(values[nextIndex]);
 
     if (typeof nextValue === 'undefined') {
@@ -326,9 +327,9 @@ nv.interactiveBisect = function (values, searchVal, xAccessor) {
 nv.nearestValueIndex = function (values, searchVal, threshold) {
     "use strict";
     var yDistMax = Infinity, indexToHighlight = null;
-    values.forEach(function(d,i) {
+    values.forEach(function (d, i) {
         var delta = Math.abs(searchVal - d);
-        if ( d != null && delta <= yDistMax && delta < threshold) {
+        if (d != null && delta <= yDistMax && delta < threshold) {
             yDistMax = delta;
             indexToHighlight = i;
         }
